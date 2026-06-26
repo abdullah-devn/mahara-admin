@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>لوحة تحكم — مِهارة</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0d1117;--bg2:#161b22;--bg3:#1c2128;--line:#21262d;--line2:#30363d;
+      --green:#39d353;--green2:#2ea043;--text:#e6edf3;--text2:#c9d1d9;--muted:#8b949e;
+      --amber:#fbbf24;--red:#f87171;--blue:#38bdf8;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'IBM Plex Sans Arabic',sans-serif;background:var(--bg);color:var(--text2);min-height:100vh}
+
+    header{background:var(--bg2);border-bottom:1px solid var(--line);padding:0 26px;height:60px;
+      display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+    .brand{display:flex;align-items:center;gap:11px}
+    .brand .mk{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--green),var(--green2));
+      display:grid;place-items:center;color:var(--bg);font-weight:800;font-size:1.1rem}
+    .brand h1{color:var(--text);font-size:1.05rem;font-weight:700}
+    .brand h1 span{color:var(--green)}
+    .hd-right{display:flex;align-items:center;gap:16px}
+    .status{font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+    .status .dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+    .status.on .dot{background:var(--green);box-shadow:0 0 8px var(--green)}
+    .btn-logout{background:var(--bg3);color:var(--text2);border:1px solid var(--line2);
+      padding:7px 14px;border-radius:7px;cursor:pointer;font-size:.78rem;font-family:inherit}
+    .btn-logout:hover{border-color:var(--red);color:var(--red)}
+
+    .container{max-width:1240px;margin:26px auto;padding:0 22px}
+
+    /* Login */
+    .login-box{max-width:400px;margin:90px auto;background:var(--bg2);border:1px solid var(--line);
+      border-radius:14px;padding:36px}
+    .login-box .mk{width:54px;height:54px;border-radius:13px;background:linear-gradient(135deg,var(--green),var(--green2));
+      display:grid;place-items:center;color:var(--bg);font-weight:800;font-size:1.6rem;margin:0 auto 18px}
+    .login-box h2{color:var(--text);font-size:1.15rem;margin-bottom:6px;text-align:center;font-weight:700}
+    .login-box .sub{color:var(--muted);font-size:.82rem;text-align:center;margin-bottom:24px}
+    .login-box input{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--text);
+      padding:12px 15px;border-radius:9px;font-size:.92rem;margin-bottom:13px;font-family:inherit;text-align:center;letter-spacing:2px}
+    .login-box input:focus{outline:none;border-color:var(--green)}
+    .btn-login{width:100%;background:var(--green2);color:#fff;border:none;padding:13px;border-radius:9px;
+      font-size:.95rem;font-weight:700;cursor:pointer;font-family:inherit}
+    .btn-login:hover{background:var(--green)}
+    .login-err{color:var(--red);font-size:.82rem;text-align:center;margin-top:10px;min-height:18px}
+
+    /* Section title */
+    .sec-title{font-size:.9rem;color:var(--muted);font-weight:600;margin:0 0 14px 4px;display:flex;align-items:center;gap:8px}
+    .sec-title svg{width:16px;height:16px}
+
+    /* Stats grid */
+    .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-bottom:28px}
+    .stat-card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:18px 16px;position:relative;overflow:hidden}
+    .stat-card .ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;margin-bottom:12px}
+    .stat-card .ic svg{width:18px;height:18px}
+    .stat-card .num{font-size:1.7rem;font-weight:800;line-height:1;font-family:'IBM Plex Sans Arabic'}
+    .stat-card .lbl{font-size:.74rem;color:var(--muted);margin-top:6px}
+    .ic-visits{background:rgba(56,189,248,.13)}.ic-visits svg{color:var(--blue)}
+    .ic-buyers{background:rgba(57,211,83,.13)}.ic-buyers svg{color:var(--green)}
+    .ic-total{background:rgba(139,148,158,.13)}.ic-total svg{color:var(--muted)}
+    .ic-pending{background:rgba(251,191,36,.13)}.ic-pending svg{color:var(--amber)}
+    .ic-approved{background:rgba(57,211,83,.13)}.ic-approved svg{color:var(--green)}
+    .ic-revenue{background:rgba(56,189,248,.13)}.ic-revenue svg{color:var(--blue)}
+    .num-visits{color:var(--blue)}.num-buyers{color:var(--green)}.num-total{color:var(--text)}
+    .num-pending{color:var(--amber)}.num-approved{color:var(--green)}.num-revenue{color:var(--blue)}
+
+    /* Table */
+    .table-card{background:var(--bg2);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+    .table-hd{padding:16px 22px;display:flex;justify-content:space-between;align-items:center;
+      border-bottom:1px solid var(--line);gap:14px;flex-wrap:wrap}
+    .table-hd h2{font-size:.92rem;color:var(--text);font-weight:700}
+    .table-hd-right{display:flex;gap:9px;align-items:center}
+    .search-inp{background:var(--bg);border:1px solid var(--line);color:var(--text);
+      padding:8px 13px;border-radius:8px;font-size:.82rem;width:230px;font-family:inherit}
+    .search-inp:focus{outline:none;border-color:var(--green)}
+    .filter-btn{background:var(--bg);border:1px solid var(--line);color:var(--muted);padding:8px 13px;
+      border-radius:8px;cursor:pointer;font-size:.78rem;font-family:inherit}
+    .filter-btn.active{border-color:var(--green);color:var(--green);background:rgba(57,211,83,.08)}
+    .btn-refresh{background:var(--green2);color:#fff;border:none;padding:8px 16px;border-radius:8px;
+      cursor:pointer;font-size:.78rem;font-family:inherit;font-weight:600;display:flex;align-items:center;gap:6px}
+    .btn-refresh:hover{background:var(--green)}
+    .btn-refresh svg{width:14px;height:14px}
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;min-width:780px}
+    thead th{background:var(--bg);padding:12px 16px;text-align:right;font-size:.76rem;color:var(--muted);font-weight:600;position:sticky;top:0}
+    tbody tr{border-bottom:1px solid var(--line);transition:background .12s}
+    tbody tr:hover{background:var(--bg)}
+    tbody td{padding:13px 16px;font-size:.83rem}
+
+    .badge{padding:4px 11px;border-radius:20px;font-size:.72rem;font-weight:600;white-space:nowrap}
+    .badge-pending{background:#78350f;color:var(--amber)}
+    .badge-approved{background:#14532d;color:#4ade80}
+
+    .btn-img{background:transparent;color:var(--blue);border:1px solid var(--blue);
+      padding:5px 12px;border-radius:6px;cursor:pointer;font-size:.73rem;font-family:inherit}
+    .btn-img:hover{background:rgba(56,189,248,.1)}
+    .btn-approve{background:var(--green2);color:#fff;border:none;padding:6px 13px;border-radius:6px;
+      cursor:pointer;font-size:.73rem;font-family:inherit;font-weight:600}
+    .btn-approve:hover{background:var(--green)}
+    .btn-del{background:transparent;color:var(--red);border:1px solid #7f1d1d;padding:6px 13px;
+      border-radius:6px;cursor:pointer;font-size:.73rem;font-family:inherit}
+    .btn-del:hover{background:#7f1d1d;color:#fff}
+
+    .empty{text-align:center;padding:48px;color:var(--muted);font-size:.88rem}
+
+    .img-modal{position:fixed;inset:0;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;z-index:999}
+    .img-modal.open{display:flex}
+    .img-modal img{max-width:90vw;max-height:90vh;border-radius:10px}
+    .img-modal-close{position:fixed;top:18px;left:18px;background:var(--bg3);color:var(--text);border:none;
+      width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:1.2rem}
+
+    .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%);color:#fff;padding:12px 24px;
+      border-radius:9px;font-weight:600;display:none;z-index:9999;font-size:.85rem;font-family:inherit}
+
+    @media(max-width:1000px){.stats{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:600px){.stats{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="mk">م</span>
+    <h1>لوحة تحكم <span>مِهارة</span></h1>
+  </div>
+  <div class="hd-right">
+    <span class="status" id="statusText"><span class="dot"></span>غير متصل</span>
+    <button class="btn-logout" id="logoutBtn" onclick="doLogout()" style="display:none">خروج</button>
+  </div>
+</header>
+
+<!-- Login -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="mk">م</div>
+    <h2>دخول المدير</h2>
+    <div class="sub">أدخل كلمة المرور للوصول إلى لوحة التحكم</div>
+    <input type="password" id="passInput" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+    <button class="btn-login" onclick="doLogin()">دخول</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard" style="display:none">
+  <div class="container">
+
+    <div class="sec-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><rect x="7" y="10" width="3" height="8"/><rect x="12" y="6" width="3" height="12"/><rect x="17" y="13" width="3" height="5"/></svg>
+      نظرة عامة
+    </div>
+    <div class="stats">
+      <div class="stat-card">
+        <div class="ic ic-visits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <div class="num num-visits" id="visitsCount">—</div>
+        <div class="lbl">زوّار الموقع</div>
+      </div>
+      <div class="stat-card">
+        <div class="ic ic-buyers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg></div>
+        <div class="num num-buyers" id="buyersCount">—</div>
+        <div class="lbl">مشترون فعليّون</div>
+      </div>
+      <div class="stat-card">
+        <div class="ic ic-total"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11H5a2 2 0 0 0-2 2v7h18v-7a2 2 0 0 0-2-2h-4"/><path d="M9 7h6v4H9z"/></svg></div>
+        <div class="num num-total" id="totalCount">—</div>
+        <div class="lbl">إجمالي الطلبات</div>
+      </div>
+      <div class="stat-card">
+        <div class="ic ic-pending"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="num num-pending" id="pendingCount">—</div>
+        <div class="lbl">قيد الانتظار</div>
+      </div>
+      <div class="stat-card">
+        <div class="ic ic-approved"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+        <div class="num num-approved" id="approvedCount">—</div>
+        <div class="lbl">مقبولة</div>
+      </div>
+      <div class="stat-card">
+        <div class="ic ic-revenue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        <div class="num num-revenue" id="revenueCount">—</div>
+        <div class="lbl">الإيرادات (أوقية)</div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="table-hd">
+        <h2>طلبات الاشتراك</h2>
+        <div class="table-hd-right">
+          <button class="filter-btn active" data-f="all" onclick="setFilter('all')">الكل</button>
+          <button class="filter-btn" data-f="pending" onclick="setFilter('pending')">انتظار</button>
+          <button class="filter-btn" data-f="approved" onclick="setFilter('approved')">مقبولة</button>
+          <input class="search-inp" type="text" placeholder="بحث بالاسم أو الهاتف أو المسار..." oninput="onSearch(this.value)"/>
+          <button class="btn-refresh" onclick="loadData()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>تحديث</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>#</th><th>الاسم</th><th>الهاتف</th><th>المسار</th><th>التاريخ</th><th>الحالة</th><th>الإيصال</th><th>إجراء</th></tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr><td colspan="8" class="empty">جاري التحميل...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="img-modal" id="imgModal" onclick="closeImg()">
+  <button class="img-modal-close" onclick="closeImg()">✕</button>
+  <img id="modalImg" src="" alt="إيصال الدفع"/>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+  const SB_URL = 'https://onggoxycyevvefshjdpn.supabase.co';
+  const SB_KEY = 'sb_publishable_Ld0OoZP8OM8cnetg-QiToA_1AlCFcUV';
+  const ADMIN_PASS = 'mahara2026';
+  const PRICES = {'إنشاء المواقع':1000,'تطبيقات الهواتف':1000,'الأمن السيبراني':1000,'الاختراق الأخلاقي':1000,'الذكاء الاصطناعي':2000,'صنع البوتات':890};
+
+  let allData = [];
+  let curFilter = 'all';
+  let curSearch = '';
+
+  function doLogin() {
+    const pass = document.getElementById('passInput').value;
+    if (pass === ADMIN_PASS) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      const st = document.getElementById('statusText');
+      st.classList.add('on'); st.innerHTML = '<span class="dot"></span>متصل';
+      document.getElementById('logoutBtn').style.display = 'inline-block';
+      loadData();
+    } else {
+      document.getElementById('loginErr').textContent = 'كلمة المرور غير صحيحة';
+    }
+  }
+  function doLogout(){
+    document.getElementById('dashboard').style.display='none';
+    document.getElementById('loginScreen').style.display='block';
+    document.getElementById('passInput').value='';
+    document.getElementById('logoutBtn').style.display='none';
+    const st=document.getElementById('statusText'); st.classList.remove('on'); st.innerHTML='<span class="dot"></span>غير متصل';
+  }
+
+  async function loadData() {
+    try{
+      const res = await fetch(`${SB_URL}/rest/v1/purchases?select=*&order=created_at.desc`, {
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+      });
+      allData = await res.json();
+      applyView();
+      updateStats(allData);
+      loadVisits();
+    }catch(e){ showToast('تعذّر تحميل البيانات','#ef4444'); }
+  }
+
+  async function loadVisits(){
+    try{
+      const res = await fetch(`${SB_URL}/rest/v1/visits?select=id`, {
+        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Prefer':'count=exact', 'Range':'0-0' }
+      });
+      const cr = res.headers.get('content-range') || '';
+      const total = cr.includes('/') ? cr.split('/')[1] : '0';
+      document.getElementById('visitsCount').textContent = (total==='*'?'0':total);
+    }catch(e){ document.getElementById('visitsCount').textContent='—'; }
+  }
+
+  function setFilter(f){
+    curFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active', b.dataset.f===f));
+    applyView();
+  }
+  function onSearch(q){ curSearch = q; applyView(); }
+  function applyView(){
+    let d = allData;
+    if(curFilter!=='all') d = d.filter(r=>r.status===curFilter);
+    if(curSearch) d = d.filter(r=>(r.name||'').includes(curSearch)||(r.phone||'').includes(curSearch)||(r.course||'').includes(curSearch));
+    renderTable(d);
+  }
+
+  function renderTable(data) {
+    const tbody = document.getElementById('tableBody');
+    if (!data.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">لا توجد طلبات</td></tr>'; return; }
+    tbody.innerHTML = data.map((r, i) => `
+      <tr>
+        <td style="color:var(--muted)">${i + 1}</td>
+        <td><strong style="color:var(--text)">${r.name || '—'}</strong></td>
+        <td style="direction:ltr;text-align:right">${r.phone || '—'}</td>
+        <td>${r.course || '—'}</td>
+        <td style="color:var(--muted);font-size:.75rem">${new Date(r.created_at).toLocaleDateString('ar')} ${new Date(r.created_at).toLocaleTimeString('ar',{hour:'2-digit',minute:'2-digit'})}</td>
+        <td>${badgeHtml(r.status)}</td>
+        <td>${r.receipt_url ? `<button class="btn-img" onclick="showImg('${r.receipt_url}')">عرض</button>` : '—'}</td>
+        <td style="display:flex;gap:6px;flex-wrap:wrap">
+          ${r.status !== 'approved' ? `<button class="btn-approve" onclick="updateStatus(${r.id},'approved')">قبول</button>` : ''}
+          <button class="btn-del" onclick="deleteRow(${r.id})">حذف</button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  function badgeHtml(status) {
+    if (status === 'approved') return '<span class="badge badge-approved">مقبول</span>';
+    return '<span class="badge badge-pending">انتظار</span>';
+  }
+
+  function updateStats(data) {
+    document.getElementById('totalCount').textContent = data.length;
+    document.getElementById('pendingCount').textContent = data.filter(r => r.status === 'pending').length;
+    const approved = data.filter(r => r.status === 'approved');
+    document.getElementById('approvedCount').textContent = approved.length;
+    // unique buyers by phone
+    const buyers = new Set(approved.map(r=>r.phone||r.name)).size;
+    document.getElementById('buyersCount').textContent = buyers;
+    // revenue from approved
+    const revenue = approved.reduce((sum,r)=> sum + (PRICES[r.course]||0), 0);
+    document.getElementById('revenueCount').textContent = revenue.toLocaleString('en-US');
+  }
+
+  async function updateStatus(id, status) {
+    const res = await fetch(`${SB_URL}/rest/v1/purchases?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ status })
+    });
+    if (res.ok) { showToast('تم قبول الطلب', '#2ea043'); loadData(); }
+    else showToast('حدث خطأ', '#ef4444');
+  }
+
+  async function deleteRow(id){
+    if(!confirm('هل تريد حذف هذا الطلب نهائياً؟ لا يمكن التراجع.')) return;
+    const res = await fetch(`${SB_URL}/rest/v1/purchases?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Prefer': 'return=minimal' }
+    });
+    if (res.ok) { showToast('تم حذف الطلب', '#ef4444'); loadData(); }
+    else showToast('تعذّر الحذف', '#ef4444');
+  }
+
+  function showImg(url) { document.getElementById('modalImg').src = url; document.getElementById('imgModal').classList.add('open'); }
+  function closeImg() { document.getElementById('imgModal').classList.remove('open'); }
+  function showToast(msg, color = '#2ea043') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.style.background = color; t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 3000);
+  }
+</script>
+</body>
+</html>
