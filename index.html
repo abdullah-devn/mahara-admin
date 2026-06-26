@@ -219,38 +219,104 @@
 <script>
   const SB_URL = 'https://onggoxycyevvefshjdpn.supabase.co';
   const SB_KEY = 'sb_publishable_Ld0OoZP8OM8cnetg-QiToA_1AlCFcUV';
-  const ADMIN_PASS = 'mahara2026';
+  const ADMIN_EMAIL = 'bdallhsydmkhtar24@gmail.com';
   const PRICES = {'إنشاء المواقع':1000,'تطبيقات الهواتف':1000,'الأمن السيبراني':1000,'الاختراق الأخلاقي':1000,'الذكاء الاصطناعي':2000,'صنع البوتات':890};
 
   let allData = [];
   let curFilter = 'all';
   let curSearch = '';
+  let adminToken = null;
 
-  function doLogin() {
-    const pass = document.getElementById('passInput').value;
-    if (pass === ADMIN_PASS) {
-      document.getElementById('loginScreen').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      const st = document.getElementById('statusText');
-      st.classList.add('on'); st.innerHTML = '<span class="dot"></span>متصل';
-      document.getElementById('logoutBtn').style.display = 'inline-block';
-      loadData();
-    } else {
-      document.getElementById('loginErr').textContent = 'كلمة المرور غير صحيحة';
-    }
+  function authHeaders(extra) {
+    return Object.assign({ 'apikey': SB_KEY, 'Authorization': 'Bearer ' + adminToken }, extra || {});
   }
+
+  async function doLogin() {
+    const pass = document.getElementById('passInput').value;
+    const btn = document.querySelector('.btn-login');
+    const errEl = document.getElementById('loginErr');
+    errEl.textContent = '';
+    btn.disabled = true;
+    try {
+      const res = await fetch(SB_URL + '/auth/v1/token?grant_type=password', {
+        method: 'POST',
+        headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: ADMIN_EMAIL, password: pass })
+      });
+      const data = await res.json();
+      if (data.access_token) {
+        localStorage.setItem('mahara_admin_session', JSON.stringify({ access_token: data.access_token, refresh_token: data.refresh_token }));
+        adminToken = data.access_token;
+        enterDashboard();
+      } else {
+        errEl.textContent = 'كلمة المرور غير صحيحة';
+      }
+    } catch (e) {
+      errEl.textContent = 'تعذّر الاتصال، حاول مجدداً';
+    }
+    btn.disabled = false;
+  }
+
+  function enterDashboard() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    const st = document.getElementById('statusText');
+    st.classList.add('on'); st.innerHTML = '<span class="dot"></span>متصل';
+    document.getElementById('logoutBtn').style.display = 'inline-block';
+    loadData();
+  }
+
+  async function checkAdminSession() {
+    try {
+      const saved = localStorage.getItem('mahara_admin_session');
+      if (!saved) return;
+      const session = JSON.parse(saved);
+      if (!session || !session.access_token) return;
+      let res = await fetch(SB_URL + '/auth/v1/user', {
+        headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + session.access_token }
+      });
+      if (!res.ok && session.refresh_token) {
+        const rf = await fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', {
+          method: 'POST',
+          headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh_token: session.refresh_token })
+        });
+        if (rf.ok) {
+          const nd = await rf.json();
+          localStorage.setItem('mahara_admin_session', JSON.stringify({ access_token: nd.access_token, refresh_token: nd.refresh_token }));
+          session.access_token = nd.access_token;
+          res = await fetch(SB_URL + '/auth/v1/user', {
+            headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + nd.access_token }
+          });
+        }
+      }
+      if (res.ok) {
+        const user = await res.json();
+        if (user.email === ADMIN_EMAIL) {
+          adminToken = session.access_token;
+          enterDashboard();
+          return;
+        }
+      }
+      localStorage.removeItem('mahara_admin_session');
+    } catch (e) {}
+  }
+
   function doLogout(){
+    localStorage.removeItem('mahara_admin_session');
+    adminToken = null;
     document.getElementById('dashboard').style.display='none';
     document.getElementById('loginScreen').style.display='block';
     document.getElementById('passInput').value='';
     document.getElementById('logoutBtn').style.display='none';
     const st=document.getElementById('statusText'); st.classList.remove('on'); st.innerHTML='<span class="dot"></span>غير متصل';
   }
+  window.addEventListener('load', checkAdminSession);
 
   async function loadData() {
     try{
       const res = await fetch(`${SB_URL}/rest/v1/purchases?select=*&order=created_at.desc`, {
-        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}` }
+        headers: authHeaders()
       });
       allData = await res.json();
       applyView();
@@ -262,7 +328,7 @@
   async function loadVisits(){
     try{
       const res = await fetch(`${SB_URL}/rest/v1/visits?select=id`, {
-        headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Prefer':'count=exact', 'Range':'0-0' }
+        headers: authHeaders({ 'Prefer':'count=exact', 'Range':'0-0' })
       });
       const cr = res.headers.get('content-range') || '';
       const total = cr.includes('/') ? cr.split('/')[1] : '0';
@@ -324,7 +390,7 @@
   async function updateStatus(id, status) {
     const res = await fetch(`${SB_URL}/rest/v1/purchases?id=eq.${id}`, {
       method: 'PATCH',
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      headers: authHeaders({ 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }),
       body: JSON.stringify({ status })
     });
     if (res.ok) { showToast('تم قبول الطلب', '#2ea043'); loadData(); }
@@ -335,7 +401,7 @@
     if(!confirm('هل تريد حذف هذا الطلب نهائياً؟ لا يمكن التراجع.')) return;
     const res = await fetch(`${SB_URL}/rest/v1/purchases?id=eq.${id}`, {
       method: 'DELETE',
-      headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Prefer': 'return=minimal' }
+      headers: authHeaders({ 'Prefer': 'return=minimal' })
     });
     if (res.ok) { showToast('تم حذف الطلب', '#ef4444'); loadData(); }
     else showToast('تعذّر الحذف', '#ef4444');
